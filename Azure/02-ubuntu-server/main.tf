@@ -9,47 +9,44 @@ terraform {
 
 # Configure the Azure provider
 provider "azurerm" {
-  subscription_id = "your_subscription_id"
+  subscription_id = var.subscription_id
   features {}
 }
 
 # Create a new resource group
 resource "azurerm_resource_group" "rg" {
-  name     = "myTFResourceGroup"
-  location = "westus2"
+  name     = var.rg_name
+  location = var.location
 
-  tags = {
-    Enviroment = "Terraform getting started"
-    Team       = "DevOps"
-  }
+  tags = var.tags
 }
 
-# create a virtua network
+# create a virtual network
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = "myTFVnet"
-  address_space       = ["10.0.0.0/16","192.168.0.0/16"]
-  location            = "westus2"
+  name                = var.vnet_name
+  address_space       = var.vnet_address_space
+  location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_subnet" "subnet" {
-  name                 = "myTFSubnet"
+  name                 = "${var.resource_prefix}${var.subnet_name}"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes      = ["10.0.1.0/24"]
+  address_prefixes     = var.subnet_prefixes
 }
 
 resource "azurerm_public_ip" "publicip" {
-  name                 = "myTFPublicIp"
-  location             = "westus2"
+  name                 = var.public_IP
+  location             = var.location
   resource_group_name  = azurerm_resource_group.rg.name
   allocation_method    = "Static"
 }
 
 resource "azurerm_network_security_group" nsg {
-  name                  = "myTFNSG"
-  location              = "westus2"
+  name                  = var.security_group_name
+  location              = var.location
   resource_group_name   = azurerm_resource_group.rg.name
 
   security_rule {
@@ -66,12 +63,12 @@ resource "azurerm_network_security_group" nsg {
 }
 
 resource "azurerm_network_interface" "nic" {
-  name                          = "myNIC"
-  location                      = "westus2"
+  name                          = "server_nic"
+  location                      = var.location
   resource_group_name           = azurerm_resource_group.rg.name
 
   ip_configuration {
-    name                        = "myNICConfig"
+    name                        = "server_ip"
     subnet_id                   = azurerm_subnet.subnet.id
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = azurerm_public_ip.publicip.id
@@ -85,14 +82,14 @@ resource "azurerm_network_interface_security_group_association" "nic-nsg" {
 
 # Create a Linux virtual machine
 resource "azurerm_virtual_machine" "vm" {
-  name                  = "myTFVM"
-  location              = "westus2"
+  name                  = var.vm_name
+  location              = var.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.nic.id]
   vm_size               = "Standard_DS1_v2"
 
   storage_os_disk {
-    name              = "myOsDisk"
+    name              = "${var.vm_name}OsDisk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Premium_LRS"
@@ -101,14 +98,14 @@ resource "azurerm_virtual_machine" "vm" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
   os_profile {
-    computer_name  = "myTFVM"
-    admin_username = "plankton"
-    admin_password = "Password1234!"
+    computer_name  = var.vm_hostname
+    admin_username = var.vm_username
+    admin_password = var.vm_password
   }
 
   os_profile_linux_config {
