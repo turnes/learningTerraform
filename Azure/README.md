@@ -51,3 +51,17 @@ az vm image list-offers -l westus2 -p Canonical -o table
 az vm image list-skus -l westus2 -p Canonical --offer UbuntuServer -o table
 
 ```
+
+
+
+## Scenario 1
+## Scenario 2
+## Scenario 3
+```
+sudo apt-get install graphviz
+terraform graph | dot -Tsvg > graph.svg
+```
+#### No dependency
+![No dependency](03-dependencies/no-dependency/graph.svg)
+### Implicit and Explicit Dependency
+![Implicit and Explicit Dependency](03-dependencies/explicit_dependency/graph.svg)
