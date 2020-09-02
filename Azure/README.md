@@ -65,3 +65,20 @@ terraform graph | dot -Tsvg > graph.svg
 ![No dependency](03-dependencies/no-dependency/graph.svg)
 ### Implicit and Explicit Dependency
 ![Implicit and Explicit Dependency](03-dependencies/explicit_dependency/graph.svg)
+
+## Scenario 4
+* Create a storage account
+* Create a container
+* Create a file terraform.tf (it can be any name) inside of project.
+
+``` terraform
+terraform {
+    backend "azurerm" {
+    resource_group_name     = "rs-admin"
+    storage_account_name    = "turnesadmin"
+    container_name          = "terraformstate"
+    key                     = "04-remotestate"  # state file name
+  }
+}
+```
+![Implicit and Explicit Dependency](images/04-remote-state.png)
